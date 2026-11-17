@@ -315,7 +315,7 @@ with tabs[2]:
         filas = ''.join(
             f'<tr><td>{escape(r["Acero"])}</td><td class="n">{r["C"]:.3f}</td><td class="n">{r["Mn"]:.2f}</td>'
             f'<td class="n">{r[an.UTS]:.0f}</td><td class="n">{r[an.YS]:.0f}</td><td class="n">{r[an.DU]:.1f}</td>'
-            f'<td class="pc">{escape(str(r["Processing condition"]))}</td></tr>'
+            f'<td class="pc" title="{escape(str(r["Processing condition"]))}">{escape(str(r["Processing condition"]))}</td></tr>'
             for _, r in ver.iterrows())
         st.html(f'''<style>
 .tabla-reg {{ width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; line-height: 1.6; }}
@@ -324,7 +324,8 @@ with tabs[2]:
 .tabla-reg th {{ text-align: left; font-weight: 600; background: {cab}; position: sticky; top: 0; z-index: 1; }}
 .tabla-reg th, .tabla-reg td {{ padding: 3px 10px; border-bottom: 1px solid {borde}; vertical-align: top; }}
 .tabla-reg .n {{ text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }}
-.tabla-reg .pc {{ overflow-wrap: anywhere; opacity: .85; }}
+.tabla-reg .pc {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .85; }}  /* un renglón; completo al pasar el ratón */
+.tabla-reg td, .tabla-reg th {{ white-space: nowrap; }}
 /* El componente del desplazamiento automático no ocupa espacio (abajo queda el mismo margen que arriba) */
 .st-key-desplazar_registros {{ display: none; }}
 </style>

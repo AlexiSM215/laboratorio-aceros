@@ -273,6 +273,8 @@ _CSS_PROP = """
 .seg button.on { background: var(--st-primary-color); color: #fff; }
 /* Gráfica a la izquierda y tabla a la derecha (en pantallas angostas, una debajo de otra) */
 .raiz { container-type: inline-size; }
+/* Nota de la recta en un solo renglón (con cualquier condición) */
+.modelo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pf { display: flex; gap: 24px; align-items: flex-start; flex-wrap: nowrap; }
 .pf-graf { flex: 1 1 300px; min-width: 240px; }
 /* Ancho para que ningún texto de la tabla se parta en dos renglones */
@@ -400,7 +402,8 @@ function dibujarProp(root, d, c) {
 export default function (component) {
   const { data, parentElement } = component;
   const root = parentElement;
-  root.querySelector('.modelo').textContent = data.texto_modelo;
+  const modelo = root.querySelector('.modelo');
+  modelo.textContent = data.texto_modelo; modelo.title = data.texto_modelo;  // completa al pasar el ratón
   leyenda(root.querySelector('.ley'), data, data.cnd);
   activarTips(root, root.querySelector('.g'));
   // Arrastrar en la gráfica mueve el carbono (eje x = % C)
@@ -763,7 +766,10 @@ _HTML_REAL = """
 </div>
 """
 _CSS_REAL = """
-.h3 { font-size: 1.75rem; font-weight: 600; line-height: 1.2; margin: 4px 0 14px; letter-spacing: -.005em; }
+.raiz { container-type: inline-size; }
+/* Título en un solo renglón: la letra se reduce un poco si el ancho no alcanza */
+.h3 { font-size: min(1.75rem, calc(100cqi / 37)); white-space: nowrap; font-weight: 600; line-height: 1.2;
+      margin: 4px 0 14px; letter-spacing: -.005em; }
 .frase { font-size: 16px; line-height: 1.6; margin: 10px 0 4px; }
 .cap { font-size: 12.5px; }  /* nota de la mediana, un poco más pequeña */
 /* Tabla de aceros más parecidos compacta, con los títulos de columna centrados */
