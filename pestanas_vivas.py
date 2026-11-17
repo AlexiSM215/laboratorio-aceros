@@ -286,6 +286,8 @@ _CSS_PROP = """
 .pf-bloque { display: flow-root; }  /* título + tabla; su margen superior lo fija ajustarTablaProp */
 .pf-tabla .tb-top, .pf-tabla .tb-resto { font-size: 12px; }
 .pf-tabla .tb-top th, .pf-tabla td { white-space: nowrap; line-height: 1.25; vertical-align: middle; }
+/* Todos los valores centrados, igual que los títulos de columna */
+.pf-tabla td, .pf-tabla td.n { text-align: center; }
 .pf-tabla .tb-top th, .pf-tabla .tb-top td, .pf-tabla .tb-resto td { padding: 5px 6px; }
 /* "Rango con datos": ancho fijo para "no (extrapolación)" en un renglón (la tabla no cambia de alto) */
 .pf-tabla td.rg { white-space: nowrap; }
