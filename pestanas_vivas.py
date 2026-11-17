@@ -272,14 +272,18 @@ _CSS_PROP = """
 .seg button:last-child { border-right: 0; }
 .seg button.on { background: var(--st-primary-color); color: #fff; }
 /* Gráfica a la izquierda y tabla a la derecha (en pantallas angostas, una debajo de otra) */
-.pf { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
-.pf-graf { flex: 1 1 300px; min-width: 0; }
-.pf-tabla { flex: 0 1 380px; min-width: 290px; }
+.raiz { container-type: inline-size; }
+.pf { display: flex; gap: 24px; align-items: flex-start; flex-wrap: nowrap; }
+.pf-graf { flex: 1 1 300px; min-width: 240px; }
+/* Ancho para que ningún texto de la tabla se parta en dos renglones */
+.pf-tabla { flex: 0 0 520px; min-width: 0; }
+/* Si no caben las dos columnas, la tabla va debajo de la gráfica, a todo el ancho */
+@container (max-width: 790px) { .pf { flex-wrap: wrap; } .pf-tabla { flex: 1 1 100%; } }
 .pf-tabla .sub { margin: 10px 0 6px; font-size: 14px; line-height: 1.4; text-align: center; }
 .pf-tabla .seg { display: flex; width: fit-content; margin: 0 auto 4px; }  /* centrados respecto a la tabla */
 .pf-bloque { display: flow-root; }  /* título + tabla; su margen superior lo fija ajustarTablaProp */
 .pf-tabla .tb-top, .pf-tabla .tb-resto { font-size: 12px; }
-.pf-tabla .tb-top th { white-space: normal; line-height: 1.25; vertical-align: middle; }
+.pf-tabla .tb-top th, .pf-tabla td { white-space: nowrap; line-height: 1.25; vertical-align: middle; }
 .pf-tabla .tb-top th, .pf-tabla .tb-top td, .pf-tabla .tb-resto td { padding: 5px 6px; }
 /* "Rango con datos": ancho fijo para "no (extrapolación)" en un renglón (la tabla no cambia de alto) */
 .pf-tabla td.rg { white-space: nowrap; }
@@ -371,7 +375,7 @@ function dibujarProp(root, d, c) {
   g.agarre.setAttribute('cx', g.px(c)); g.agarre.setAttribute('cy', g.py(v));
   g.agarre.setAttribute('data-tip', g.est.getAttribute('data-tip'));
   // Tabla "mismo acero, distinto procesamiento": cerrada muestra solo la condición elegida
-  const cols = '<colgroup><col style="width:30%"><col style="width:13%"><col style="width:12%"><col style="width:15%"><col style="width:30%"></colgroup>';
+  const cols = '<colgroup><col style="width:28.4%"><col style="width:13.5%"><col style="width:11.8%"><col style="width:17.9%"><col style="width:28.4%"></colgroup>';
   const fila = (k) => {
     const q = predecir(d.modelos[k], c);
     return `<tr${k === d.cnd ? ' class="sel"' : ''}><td><i style="background:${d.color[k]}"></i>${k}</td>`
