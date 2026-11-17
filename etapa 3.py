@@ -88,6 +88,9 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 /* Igual en todos los equipos: barras de desplazamiento delgadas con espacio fijo (en Windows son
    anchas y cambian el ancho del contenido) y sin agrandado automático del texto en iPad */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* Menús de Acero y Procesamiento: solo se elige de la lista (sin cursor de texto) */
+[data-testid="stSidebar"] [data-testid="stSelectbox"] input { caret-color: transparent; cursor: pointer; }
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div { cursor: pointer; }
 [data-testid="stMain"] { scrollbar-gutter: stable; scrollbar-width: thin; }
 [data-testid="stMain"]::-webkit-scrollbar, [data-testid="stSidebarContent"]::-webkit-scrollbar { width: 8px; height: 8px; }
 [data-testid="stMain"]::-webkit-scrollbar-thumb, [data-testid="stSidebarContent"]::-webkit-scrollbar-thumb {
@@ -230,6 +233,7 @@ with st.sidebar:
     st.session_state['acero'] = next((k for k, v in PRESETS.items()
                                       if abs(v - st.session_state['C']) < 1e-9), PERSONALIZADO)
     st.selectbox('Acero', [*PRESETS, PERSONALIZADO], key='acero', on_change=_al_elegir_acero,
+                 filter_mode=None,  # solo elegir de la lista: no se puede escribir
                  label_visibility='collapsed',
                  format_func=lambda k: (f'Personalizado ({st.session_state["C"]:.2f} % C)'
                                         if k == PERSONALIZADO else f'AISI {k}'))
@@ -238,7 +242,8 @@ with st.sidebar:
                     on_value_change=_al_mover_carbono)
     c = st.session_state['C']
     st.header('Procesamiento')
-    cnd = st.selectbox('Condición', an.ORDEN, index=2, label_visibility='collapsed')
+    cnd = st.selectbox('Condición', an.ORDEN, index=2, label_visibility='collapsed',
+                       filter_mode=None)  # solo elegir de la lista: no se puede escribir
     st.caption(an.DESCRIPCION[cnd])
     st.divider()
     st.caption(f'Datos: {len(datos)} registros de {datos["Name"].nunique()} aceros AISI 10xx '
