@@ -179,7 +179,12 @@ export default function (component) {
       e.preventDefault(); svg.setPointerCapture(e.pointerId);
       svg._activo = true; svg.classList.add('arrastrando'); pedir(e, { inicio: true });
     });
-    svg.addEventListener('pointermove', (e) => { if (svg._activo) pedir(e, {}); });
+    // Movimientos agrupados: como máximo uno por cuadro de pantalla (más fluido)
+    svg.addEventListener('pointermove', (e) => {
+      if (!svg._activo) return;
+      svg._ultimoEv = e;
+      if (!svg._cuadro) svg._cuadro = requestAnimationFrame(() => { svg._cuadro = 0; if (svg._activo) pedir(svg._ultimoEv, {}); });
+    });
     const soltar = (e) => { if (!svg._activo) return; svg._activo = false; svg.classList.remove('arrastrando'); pedir(e, { fin: true }); };
     svg.addEventListener('pointerup', soltar);
     svg.addEventListener('pointercancel', soltar);

@@ -145,10 +145,16 @@ function arrastrarCarbono(svg, aCarbono) {
     svg._activo = true; svg.classList.add('arrastrando');
     pedir(e, { inicio: true });
   });
-  svg.addEventListener('pointermove', (e) => { if (svg._activo) pedir(e, {}); });
+  // Movimientos agrupados: como máximo uno por cuadro de pantalla (más fluido)
+  svg.addEventListener('pointermove', (e) => {
+    if (!svg._activo) return;
+    svg._ultimoEv = e;
+    if (!svg._cuadro) svg._cuadro = requestAnimationFrame(() => { svg._cuadro = 0; if (svg._activo) pedir(svg._ultimoEv, {}); });
+  });
   const soltar = (e) => {
     if (!svg._activo) return;
     svg._activo = false; svg.classList.remove('arrastrando');
+    cancelAnimationFrame(svg._cuadro); svg._cuadro = 0;
     pedir(e, { fin: true });
   };
   svg.addEventListener('pointerup', soltar);
@@ -258,8 +264,8 @@ _CSS_PROP = """
 .seg button.on { background: var(--st-primary-color); color: #fff; }
 /* Gráfica a la izquierda y tabla a la derecha (en pantallas angostas, una debajo de otra) */
 .pf { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
-.pf-graf { flex: 1 1 480px; min-width: 0; }
-.pf-tabla { flex: 0 1 410px; min-width: 300px; }
+.pf-graf { flex: 1 1 300px; min-width: 0; }
+.pf-tabla { flex: 0 1 380px; min-width: 290px; }
 .pf-tabla .sub { margin: 10px 0 6px; font-size: 14px; line-height: 1.4; text-align: center; }
 .pf-tabla .seg { display: flex; width: fit-content; margin: 0 auto 4px; }  /* centrados respecto a la tabla */
 .pf-bloque { display: flow-root; }  /* título + tabla; su margen superior lo fija ajustarTablaProp */

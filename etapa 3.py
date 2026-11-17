@@ -167,10 +167,12 @@ export default function (component) {
   };
   input.oninput = () => {
     mostrar(input.value);
-    // Aviso inmediato a la micrografía (se redibuja en el navegador sin esperar al servidor)
+    // Aviso inmediato a todas las vistas (se redibujan en el navegador sin esperar al servidor)
     window.dispatchEvent(new CustomEvent('carbono-cambia', { detail: Number(input.value) }));
-    if (!root._temporizador) {
-      root._temporizador = setTimeout(() => { root._temporizador = null; enviar(); }, 60);
+    // Mientras se arrastra no se consulta al servidor (evita tirones); se envía al soltar.
+    // Con el teclado (sin arrastre) sí se envía, agrupado.
+    if (!root._arrastrando && !root._temporizador) {
+      root._temporizador = setTimeout(() => { root._temporizador = null; enviar(); }, 120);
     }
   };
   input.onchange = enviar;
@@ -179,6 +181,16 @@ export default function (component) {
   // con el evento 'carbono-pedir' y este deslizador lo aplica como si lo moviera el usuario
   root._enviar = enviar;
   root._datos = data;
+  if (!root._oyenteResumen) {
+    root._oyenteResumen = (e) => {
+      const p = document.querySelector('.st-key-resumen_acero p strong, .st-key-resumen_acero p b, .st-key-resumen_acero p');
+      if (!p) return;
+      const v = Number(e.detail), eut = 0.76;
+      const tipo = v < eut - 0.005 ? 'hipoeutectoide' : (v <= eut + 0.005 ? 'eutectoide' : 'hipereutectoide');
+      p.textContent = p.textContent.replace(/Acero con [\\d.]+ % C \\([^)]*\\)/, `Acero con ${v.toFixed(2)} % C (${tipo})`);
+    };
+    window.addEventListener('carbono-cambia', root._oyenteResumen);
+  }
   if (!root._oyentePedir) {
     root._oyentePedir = (e) => {
       const d = root._datos, inp = root.querySelector('.cs-in');
@@ -189,10 +201,8 @@ export default function (component) {
         root.querySelector('.cs-val').textContent = v.toFixed(2);
         window.dispatchEvent(new CustomEvent('carbono-cambia', { detail: v }));
       }
-      if (e.detail.fin) {
+      if (e.detail.fin) {  // solo al soltar se envía al servidor
         root._arrastrando = false; window.__arrastrandoCarbono = false; root._enviar();
-      } else if (!root._temporizador) {
-        root._temporizador = setTimeout(() => { root._temporizador = null; root._enviar(); }, 60);
       }
     };
     window.addEventListener('carbono-pedir', root._oyentePedir);
