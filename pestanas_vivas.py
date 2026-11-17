@@ -27,7 +27,7 @@ _CSS_COMUN = TEMA_CSS + """
        font-size: 12.5px; line-height: 1.45; padding: 6px 9px; border-radius: 6px; white-space: nowrap;
        opacity: 0; transition: opacity .08s; }
 .tip.on { opacity: 1; }
-.g.arrastrable { cursor: ew-resize; touch-action: none; user-select: none; }
+.g.arrastrable { cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; }  /* en táctil: vertical = desplazar la página */
 .g.arrastrando { cursor: grabbing; }
 .g.arrastrable path[fill="gold"] { cursor: grab; }
 .tb { width: 100%; border-collapse: collapse; font-size: 14px; margin: 6px 0 4px; }

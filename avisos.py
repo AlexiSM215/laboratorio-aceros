@@ -82,7 +82,9 @@ _CSS = TEMA_CSS + """
             transition: opacity .15s ease, transform .15s ease; }
 .av-globo::before { content: ''; position: absolute; top: -6px; right: 8px; width: 10px; height: 10px;
                     transform: rotate(45deg); background: inherit; border-left: inherit; border-top: inherit; }
-.nt.activo:hover .av-globo, .nt.activo:focus-within .av-globo { opacity: 1; transform: none; }
+.nt.activo:hover .av-globo, .nt.activo:focus-within .av-globo, .nt.activo.tocada .av-globo { opacity: 1; transform: none; }
+/* En pantallas táctiles el botón se toca (no hay ratón para pasar por encima) */
+@media (hover: none) { .av-bt { cursor: pointer; } }
 .av-msg { display: none; }
 .av-msg.on { display: block; }
 .av-msg.on + .av-msg.on { margin-top: 8px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); }
@@ -127,6 +129,23 @@ export default function (component) {
   root.querySelector('.globo-info').textContent = data.info || '';
   activar(root.querySelector('.nt-info'), !!data.info);
   root._cfg = data;
+  // Tocar una notificación abre su texto; tocar fuera lo cierra (pantallas táctiles)
+  if (!root._toques) {
+    root._toques = true;
+    root.querySelectorAll('.nt').forEach((nt) => {
+      nt.querySelector('.av-bt').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const abrir = !nt.classList.contains('tocada');
+        root.querySelectorAll('.nt').forEach((x) => x.classList.remove('tocada'));
+        nt.classList.toggle('tocada', abrir);
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.composedPath().some((el) => el.classList && el.classList.contains('nt'))) {
+        root.querySelectorAll('.nt').forEach((x) => x.classList.remove('tocada'));
+      }
+    }, true);
+  }
   if (!root._oyenteRec) {
     root._oyenteRec = () => mostrarRecomendacion(root);
     window.addEventListener('recomendacion', root._oyenteRec);

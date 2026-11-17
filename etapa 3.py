@@ -85,6 +85,22 @@ header[data-testid="stHeader"] button, header[data-testid="stHeader"] a { pointe
 .st-key-avisos * { overflow: visible !important; }
 /* Sin anclaje automático del navegador: al cerrarse un aviso sube la información y el título no se mueve */
 [data-testid="stMain"] { overflow-anchor: none; }
+/* Igual en todos los equipos: barras de desplazamiento delgadas con espacio fijo (en Windows son
+   anchas y cambian el ancho del contenido) y sin agrandado automático del texto en iPad */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+[data-testid="stMain"] { scrollbar-gutter: stable; scrollbar-width: thin; }
+[data-testid="stMain"]::-webkit-scrollbar, [data-testid="stSidebarContent"]::-webkit-scrollbar { width: 8px; height: 8px; }
+[data-testid="stMain"]::-webkit-scrollbar-thumb, [data-testid="stSidebarContent"]::-webkit-scrollbar-thumb {
+  background: rgba(128,128,128,.45); border-radius: 4px; }
+[data-testid="stMain"]::-webkit-scrollbar-track, [data-testid="stSidebarContent"]::-webkit-scrollbar-track { background: transparent; }
+/* Tablets en vertical y ventanas angostas: columnas una debajo de otra y pestañas más compactas */
+@media (max-width: 1000px) {
+  [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+  [data-testid="stMainBlockContainer"] [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] { min-width: 100%; }
+  [role="tablist"] { gap: 8px; }
+  [role="tablist"] [role="tab"] { padding-left: 0; padding-right: 0; }
+  [role="tablist"] [role="tab"] p { font-size: 12px; }
+}
 [data-testid="stMainBlockContainer"] h1 { padding-top: 0; }
 [data-testid="stSidebarHeader"] { position: absolute; top: 10px; right: 6px; height: auto; min-height: 0;
                                   padding: 0; margin: 0; z-index: 5; }

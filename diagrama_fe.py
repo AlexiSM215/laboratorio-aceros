@@ -36,7 +36,7 @@ _CSS = TEMA_CSS + """
 .fe-cap { font-size: 12px; opacity: .65; margin-top: 4px; line-height: 1.5; }
 .fe-cap b { font-weight: 600; }
 /* Diagrama interactivo: arrastrar (o hacer clic) mueve el acero */
-.fe-svg { cursor: ew-resize; touch-action: none; user-select: none; }
+.fe-svg { cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; }  /* en táctil: vertical = desplazar la página */
 .fe-svg.arrastrando { cursor: grabbing; }
 .pt { cursor: grab; }
 """

@@ -40,7 +40,7 @@ _CSS = TEMA_CSS + """
 .mg-canvas { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; }
 .mg-c { position: absolute; top: 10px; left: 10px; padding: 3px 9px; border-radius: 6px;
         background: rgba(20,20,20,.62); color: #fff; font-size: 13px; font-weight: 600; }
-.mg-ley { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 13px; }
+.mg-ley { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin-top: 10px; font-size: 13px; }
 .mg-ley span { display: inline-flex; align-items: center; gap: 6px; }
 .mg-ley b { font-variant-numeric: tabular-nums; }
 .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,.25); }
@@ -197,11 +197,16 @@ function igualarAlDiagrama(root) {
   const arriba = marco.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop
                - (avisos ? avisos.getBoundingClientRect().height : 0);
   const maxPantalla = sc.clientHeight - arriba - debajo - (34 + 16);  // + título de "Regla de la palanca"
-  const alto = Math.round(Math.min(fe.getBoundingClientRect().bottom - marco.getBoundingClientRect().top,
+  // Columnas una debajo de otra (pantallas angostas): la imagen queda bajo el diagrama, así
+  // que no se alinea con él; toma un buen tamaño según el ancho disponible
+  const apilada = marco.getBoundingClientRect().top >= fe.getBoundingClientRect().bottom - 1;
+  const alto = apilada ? Math.round(Math.min(ancho, 480))
+             : Math.round(Math.min(fe.getBoundingClientRect().bottom - marco.getBoundingClientRect().top,
                                    Math.max(200, maxPantalla)));
   if (alto <= 0) return;
   const lado = Math.round(Math.min(ancho, alto));
-  if (mg.style.maxWidth !== lado + 'px') { mg.style.maxWidth = lado + 'px'; mg.style.margin = '0 auto'; }
+  // Solo la imagen se limita; la leyenda usa todo el ancho de la columna (un renglón)
+  if (marco.style.maxWidth !== lado + 'px') { marco.style.maxWidth = lado + 'px'; marco.style.margin = '0 auto'; }
   // Si la columna es más angosta que el alto necesario, el cuadro se alarga hacia abajo
   // recortando un poco los lados de la imagen (sin deformarla)
   const canvas = root.querySelector('.mg-canvas');
