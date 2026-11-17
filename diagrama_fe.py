@@ -39,6 +39,7 @@ _CSS = TEMA_CSS + """
 .fe-svg { cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; }  /* en táctil: vertical = desplazar la página */
 .fe-svg.arrastrando { cursor: grabbing; }
 .pt { cursor: grab; }
+.agarre { stroke: transparent; touch-action: none; cursor: grab; }
 """
 
 _JS = """
@@ -102,6 +103,8 @@ function construir(svg, k) {
   const mov = el('g', {}, svg);
   const g = {
     linea: el('line', { y1: M.t, y2: H - M.b, 'stroke-width': 3 }, mov),
+    // Zona gruesa e invisible sobre la línea del acero (fácil de agarrar con el dedo)
+    agarre: el('line', { y1: M.t, y2: H - M.b, 'stroke-width': 48, class: 'agarre' }, mov),
     p1: el('circle', { r: 6, class: 'pt', stroke: '#fff', 'stroke-width': 1.5 }, mov),
     p3: el('circle', { r: 6, class: 'pt', stroke: '#fff', 'stroke-width': 1.5 }, mov),
     t1: el('text', { class: 'temp' }, mov),
@@ -116,6 +119,7 @@ function dibujar(root, cfg, c) {
   const g = root._g, k = cfg.k, T = temperaturas(c, k);
   const x = px(c);
   g.linea.setAttribute('x1', x); g.linea.setAttribute('x2', x); g.linea.setAttribute('stroke', cfg.color);
+  g.agarre.setAttribute('x1', x); g.agarre.setAttribute('x2', x);
   for (const [p, tt, t] of [[g.p1, g.tt1, T.a1], [g.p3, g.tt3, T.a3]]) {
     p.setAttribute('cx', x); p.setAttribute('cy', py(t)); p.setAttribute('fill', cfg.color);
     tt.textContent = Math.round(t) + ' °C';
@@ -172,11 +176,12 @@ export default function (component) {
       const r = svg.getBoundingClientRect();
       const x = (e.clientX - r.left) * W / r.width;
       const c = XMIN + (x - M.l) / (W - M.l - M.r) * (XMAX - XMIN);
+      svg._ultimoC = c;  // último valor válido
       window.dispatchEvent(new CustomEvent('carbono-pedir', { detail: { valor: c, ...extra } }));
     };
     svg.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      e.preventDefault(); svg.setPointerCapture(e.pointerId);
+      e.preventDefault(); try { svg.setPointerCapture(e.pointerId); } catch (err) { /* puntero no capturable */ }
       svg._activo = true; svg.classList.add('arrastrando'); pedir(e, { inicio: true });
     });
     // Movimientos agrupados: como máximo uno por cuadro de pantalla (más fluido)
@@ -185,7 +190,15 @@ export default function (component) {
       svg._ultimoEv = e;
       if (!svg._cuadro) svg._cuadro = requestAnimationFrame(() => { svg._cuadro = 0; if (svg._activo) pedir(svg._ultimoEv, {}); });
     });
-    const soltar = (e) => { if (!svg._activo) return; svg._activo = false; svg.classList.remove('arrastrando'); pedir(e, { fin: true }); };
+    const soltar = (e) => {
+      if (!svg._activo) return;
+      svg._activo = false; svg.classList.remove('arrastrando');
+      cancelAnimationFrame(svg._cuadro); svg._cuadro = 0;
+      // Arrastre cancelado por el navegador: conservar el último valor (no saltar al origen)
+      if (e.type === 'pointercancel' || (e.clientX === 0 && e.clientY === 0)) {
+        if (svg._ultimoC !== undefined) window.dispatchEvent(new CustomEvent('carbono-pedir', { detail: { valor: svg._ultimoC, fin: true } }));
+      } else pedir(e, { fin: true });
+    };
     svg.addEventListener('pointerup', soltar);
     svg.addEventListener('pointercancel', soltar);
   }

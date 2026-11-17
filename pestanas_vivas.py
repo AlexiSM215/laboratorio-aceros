@@ -29,6 +29,9 @@ _CSS_COMUN = TEMA_CSS + """
 .tip.on { opacity: 1; }
 .g.arrastrable { cursor: ew-resize; touch-action: pan-y; user-select: none; -webkit-user-select: none; }  /* en táctil: vertical = desplazar la página */
 .g.arrastrando { cursor: grabbing; }
+/* Zona gruesa e invisible alrededor de la estrella: fácil de agarrar con el dedo y, al
+   arrastrar desde ella, la página nunca se desplaza (no se interrumpe el arrastre) */
+.agarre { fill: transparent; touch-action: none; cursor: grab; }
 .g.arrastrable path[fill="gold"] { cursor: grab; }
 .tb { width: 100%; border-collapse: collapse; font-size: 14px; margin: 6px 0 4px; }
 .tb th { text-align: left; font-weight: 600; background: var(--t-cabecera); }
@@ -136,12 +139,14 @@ function arrastrarCarbono(svg, aCarbono) {
   };
   const pedir = (e, extra) => {
     const c = aCarbono(xSvg(e));
-    if (c !== null && isFinite(c)) window.dispatchEvent(new CustomEvent('carbono-pedir', { detail: { valor: c, ...extra } }));
+    if (c === null || !isFinite(c)) return;
+    svg._ultimoC = c;  // último valor válido
+    window.dispatchEvent(new CustomEvent('carbono-pedir', { detail: { valor: c, ...extra } }));
   };
   svg.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    svg.setPointerCapture(e.pointerId);
+    try { svg.setPointerCapture(e.pointerId); } catch (err) { /* puntero no capturable */ }
     svg._activo = true; svg.classList.add('arrastrando');
     pedir(e, { inicio: true });
   });
@@ -155,7 +160,11 @@ function arrastrarCarbono(svg, aCarbono) {
     if (!svg._activo) return;
     svg._activo = false; svg.classList.remove('arrastrando');
     cancelAnimationFrame(svg._cuadro); svg._cuadro = 0;
-    pedir(e, { fin: true });
+    // Si el navegador cancela el arrastre (p. ej. el dedo se movió en vertical), su posición
+    // puede llegar en 0: se conserva el último valor válido en vez de saltar al origen
+    if (e.type === 'pointercancel' || (e.clientX === 0 && e.clientY === 0)) {
+      if (svg._ultimoC !== undefined) window.dispatchEvent(new CustomEvent('carbono-pedir', { detail: { valor: svg._ultimoC, fin: true } }));
+    } else pedir(e, { fin: true });
   };
   svg.addEventListener('pointerup', soltar);
   svg.addEventListener('pointercancel', soltar);
@@ -315,6 +324,7 @@ function construirProp(root, d, prop) {
                  stroke: d.color[k], 'stroke-width': act ? 4 : 1.5, 'stroke-linecap': 'round' }, g.capa);
   }
   g.est = el('path', { fill: 'gold', stroke: '#000', 'stroke-width': 1.5 }, g.arriba);
+  g.agarre = el('circle', { r: 26, class: 'agarre' }, g.arriba);
   return g;
 }
 // Título + tabla en una posición fija (no se deslizan): colocados de modo que, al
@@ -358,6 +368,8 @@ function dibujarProp(root, d, c) {
   const v = p[prop];
   g.est.setAttribute('d', estrella(g.px(c), g.py(v), 12));
   g.est.setAttribute('data-tip', `<b>Tu acero</b> · ${d.cnd}<br>C = ${f2(c)} %<br>${ETQ[prop].split(' ')[0]} = ${prop === 'DU' ? f1(v) + ' %' : f0(v) + ' MPa'}`);
+  g.agarre.setAttribute('cx', g.px(c)); g.agarre.setAttribute('cy', g.py(v));
+  g.agarre.setAttribute('data-tip', g.est.getAttribute('data-tip'));
   // Tabla "mismo acero, distinto procesamiento": cerrada muestra solo la condición elegida
   const cols = '<colgroup><col style="width:30%"><col style="width:13%"><col style="width:12%"><col style="width:15%"><col style="width:30%"></colgroup>';
   const fila = (k) => {
@@ -481,6 +493,7 @@ function construirComp(root, d) {
                  stroke: d.color[k], 'stroke-width': k === d.cnd ? 4 : 2, 'stroke-linecap': 'round' }, g.capa);
   }
   g.est = el('path', { fill: 'gold', stroke: '#000', 'stroke-width': 1.5 }, g.arriba);
+  g.agarre = el('circle', { r: 26, class: 'agarre' }, g.arriba);
   return g;
 }
 function dibujarComp(root, d, c) {
@@ -490,6 +503,8 @@ function dibujarComp(root, d, c) {
   const p = predecir(d.modelos[d.cnd], c), g = root._g;
   g.est.setAttribute('d', estrella(g.px(p.UTS), g.py(p.DU), 12));
   g.est.setAttribute('data-tip', `<b>Tu acero</b> · ${d.cnd}<br>C = ${f2(c)} %<br>UTS ${f0(p.UTS)} MPa · Ductilidad ${f1(p.DU)} %`);
+  g.agarre.setAttribute('cx', g.px(p.UTS)); g.agarre.setAttribute('cy', g.py(p.DU));
+  g.agarre.setAttribute('data-tip', g.est.getAttribute('data-tip'));
 }
 export default function (component) {
   const { data, parentElement } = component;
