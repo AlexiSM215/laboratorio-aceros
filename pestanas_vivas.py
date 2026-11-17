@@ -352,6 +352,15 @@ function ajustarTablaProp(root) {
   }
   if (bloque.style.marginTop !== mt + 'px') bloque.style.marginTop = mt + 'px';
 }
+// Todas las filas de la tabla con la misma altura: la de la fila más alta
+// (por ejemplo "Laminado en caliente" si su nombre ocupa dos renglones)
+function igualarFilas(root) {
+  const filas = [...root.querySelectorAll('.pf-tabla tr')].filter((t) => t.querySelector('td'));
+  if (!filas.length || !filas[0].getClientRects().length) return;
+  filas.forEach((t) => { t.style.height = ''; });
+  const alto = Math.max(...filas.map((t) => t.getBoundingClientRect().height));
+  filas.forEach((t) => { t.style.height = alto + 'px'; });
+}
 function dibujarProp(root, d, c) {
   root._tamP = medidasProp(root) || root._tamP || { W: 900, H: 430 };
   // Columna derecha (botones y tabla) a la altura donde empieza la gráfica de la izquierda
@@ -382,7 +391,7 @@ function dibujarProp(root, d, c) {
       + `<td class="n">${f0(q.UTS)}</td><td class="n">${f0(q.YS)}</td><td class="n">${f1(q.DU)}</td>`
       + `<td class="rg">${q.en_rango ? 'sí' : 'no (extrapolación)'}</td></tr>`;
   };
-  requestAnimationFrame(() => ajustarTablaProp(root));
+  requestAnimationFrame(() => { igualarFilas(root); ajustarTablaProp(root); });
   root.querySelector('.tb-top').innerHTML = cols
     + '<tr><th>Condición</th><th class="n">UTS (MPa)</th><th class="n">YS (MPa)</th><th class="n">Ductilidad (%)</th><th>Rango con datos</th></tr>'
     + fila(d.cnd);
